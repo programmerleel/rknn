@@ -5,7 +5,7 @@ import sys
 
 
 def onnx2rknn(onnx_path,out_dir,out_name):
-    rknn = RKNN()
+    rknn = RKNN(verbose=True)
     # load config
     print('loading config')
     ret = rknn.config(target_platform='rk3588')
@@ -15,7 +15,7 @@ def onnx2rknn(onnx_path,out_dir,out_name):
     print("load config done!")
     # load model
     print('loading model')
-    ret = rknn.load_onnx(onnx_path,inputs=["images"],input_size_list=[[640,640]],outputs=['/model.22/Mul_2_output_0', '/model.22/Split_output_1'])
+    ret = rknn.load_onnx(onnx_path)
     if ret != 0:
         print("load model failed!")
         exit(ret)
