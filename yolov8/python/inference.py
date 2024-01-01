@@ -21,7 +21,7 @@ def onnx2rknn(onnx_path,out_dir,out_name):
     rknn = RKNN(verbose=False)
     # load config
     print('loading config')
-    ret = rknn.config()
+    ret = rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]])
     if ret != 0:
         print("load config failed!")
         exit(ret)
@@ -40,6 +40,9 @@ def onnx2rknn(onnx_path,out_dir,out_name):
         print("build model failed!")
         exit(ret)
     print("build model done!")   
+
+    rknn.accuracy_analysis(inputs=["/home/ubuntu/repositories/rknn/yolov8/python/images/bus.jpg"],output_dir="/home/ubuntu/repositories/rknn/yolov8/python/results")
+
     # export model
     print("exporting model")
     if not os.path.exists(out_dir):
@@ -64,15 +67,17 @@ def letterbox(image,image_size):
     right = image_size-w-left
     image_resize = cv2.resize(image,(w,h))
     image_letter = cv2.copyMakeBorder(image_resize, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(0,0,0))
-    return image_letter, ratio, (w, h)
+    return image_letter
+
 
 # 缩放图片转换为输入格式 HWC-->NCHW
 def convert_input(image):
     image_rgb = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
     image_chw = np.transpose(image_rgb,(2,0,1))
-    image_divide = image_chw/255.0
-    image_input = np.expand_dims(image_divide,axis=0).astype(np.float32)
-    return image_input
+    # image_divide = image_chw/255.0
+    # image_input = np.expand_dims(image_divide,axis=0).astype(np.float32)
+    # return image_input
+    return image_chw
 
 # 转换推理结果格式
 def convert_output(output):
@@ -175,8 +180,10 @@ def main(args):
     print("===pre process==")
     t = time.time()
     image = cv2.imdecode(np.fromfile(image_path,dtype=np.uint8),cv2.IMREAD_COLOR)
-    image_letter = letterbox(image,image_size)[0]
-    image_input = convert_input(image_letter)
+    # image_letter = letterbox(image,image_size)[0]
+    # image_input = convert_input(image_letter)
+    image_resize = cv2.resize(image,(image_size,image_size))
+    image_input = convert_input(image_resize)
     pre_t = time.time()-t
     print("pre process done!")
     print("===infer===")
